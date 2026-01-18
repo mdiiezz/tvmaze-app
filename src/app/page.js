@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import ShowGrid from "@/components/ShowGrid";
 import ShowModal from "@/components/ShowModal";
+import FavoritesSection from "@/components/FavoritesSection";
+
 import { getShowById, getShows } from "@/lib/tvmaze";
+import { loadFavorites, saveFavorites } from "@/lib/storage";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -12,11 +15,23 @@ export default function Home() {
   const [shows, setShows] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const [favorites, setFavorites] = useState([]);
+
   const [selectedShow, setSelectedShow] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Cargar favoritos al inicio (localStorage)
+  useEffect(() => {
+    setFavorites(loadFavorites());
+  }, []);
+
+  // Guardar favoritos cuando cambien
+  useEffect(() => {
+    saveFavorites(favorites);
+  }, [favorites]);
 
   async function handleSearch() {
     setHasSearched(true);
@@ -41,6 +56,12 @@ export default function Home() {
     return shows.filter((s) => (s.name || "").toLowerCase().includes(q));
   }, [shows, query]);
 
+  function toggleFavorite(showId) {
+    setFavorites((prev) =>
+      prev.includes(showId) ? prev.filter((id) => id !== showId) : [...prev, showId]
+    );
+  }
+
   async function openDetails(showId) {
     setError("");
     try {
@@ -59,15 +80,24 @@ export default function Home() {
     setIsModalOpen(false);
   }
 
+  const isSelectedFavorite = selectedShow ? favorites.includes(selectedShow.id) : false;
+
   return (
     <main className="min-h-screen p-6">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold">TVMaze Explorer</h1>
           <p className="opacity-80">
-            Pulsa “Buscar” para cargar el listado, filtra por nombre y abre el detalle en un modal.
+            Pulsa “Buscar” para cargar el listado, abre detalles en un modal y guarda favoritos.
           </p>
         </header>
+
+        <FavoritesSection
+          favorites={favorites}
+          shows={shows}
+          onOpenDetails={openDetails}
+          onToggleFavorite={toggleFavorite}
+        />
 
         <SearchBar query={query} onQueryChange={setQuery} onSearch={handleSearch} />
 
@@ -80,10 +110,21 @@ export default function Home() {
         {loading ? <div className="text-sm opacity-80">Cargando…</div> : null}
 
         {hasSearched && !error ? (
-          <ShowGrid shows={filteredShows} onOpenDetails={openDetails} />
+          <ShowGrid
+            shows={filteredShows}
+            favorites={favorites}
+            onOpenDetails={openDetails}
+            onToggleFavorite={toggleFavorite}
+          />
         ) : null}
 
-        <ShowModal open={isModalOpen} show={selectedShow} onClose={closeModal} />
+        <ShowModal
+          open={isModalOpen}
+          show={selectedShow}
+          onClose={closeModal}
+          isFavorite={isSelectedFavorite}
+          onToggleFavorite={() => selectedShow && toggleFavorite(selectedShow.id)}
+        />
       </div>
     </main>
   );

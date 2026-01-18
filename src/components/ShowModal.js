@@ -1,4 +1,4 @@
-export default function ShowModal({ open, show, onClose }) {
+export default function ShowModal({ open, show, onClose, isFavorite, onToggleFavorite }) {
   if (!open || !show) return null;
 
   const img = show.image?.original || show.image?.medium;
@@ -44,6 +44,13 @@ export default function ShowModal({ open, show, onClose }) {
             ) : (
               <div className="text-sm opacity-70">Sin resumen.</div>
             )}
+
+            <button
+              onClick={onToggleFavorite}
+              className="rounded-xl border border-black/10 px-4 py-2 hover:bg-black/5 text-sm"
+            >
+              {isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+            </button>
           </div>
         </div>
       </div>
