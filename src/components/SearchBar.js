@@ -1,4 +1,13 @@
-export default function SearchBar({ query, onQueryChange, onSearch }) {
+export default function SearchBar({
+  query,
+  onQueryChange,
+  onSearch,
+  genres,
+  genre,
+  onGenreChange,
+  sortRating,
+  onToggleSortRating,
+}) {
   return (
     <section className="rounded-2xl border border-black/10 p-4 space-y-3">
       <div className="flex flex-col md:flex-row gap-3">
@@ -15,6 +24,28 @@ export default function SearchBar({ query, onQueryChange, onSearch }) {
         >
           Buscar
         </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-3 md:items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm opacity-80">Género:</span>
+          <select
+            value={genre}
+            onChange={(e) => onGenreChange(e.target.value)}
+            className="rounded-xl border border-black/10 bg-transparent px-3 py-2"
+          >
+            {(genres || ["ALL"]).map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={sortRating} onChange={onToggleSortRating} />
+          Ordenar por rating (extra)
+        </label>
       </div>
     </section>
   );
