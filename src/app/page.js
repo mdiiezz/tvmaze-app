@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import SearchBar from "@/components/SearchBar";
+import ShowGrid from "@/components/ShowGrid";
 import { getShows } from "@/lib/tvmaze";
 
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
     setHasSearched(true);
     setError("");
 
-    // Importante: solo llamamos a /shows una vez
+    // Solo llamamos a /shows una vez
     if (shows.length > 0) return;
 
     try {
@@ -31,15 +32,25 @@ export default function Home() {
     }
   }
 
-  // Por ahora NO filtramos ni pintamos grid (eso es el siguiente commit)
-  // Solo mostramos cuántas series hay cargadas para comprobar que funciona.
+  const filteredShows = useMemo(() => {
+    if (!query.trim()) return shows;
+    const q = query.toLowerCase();
+    return shows.filter((s) => (s.name || "").toLowerCase().includes(q));
+  }, [shows, query]);
+
+  function openDetails(showId) {
+    // En el siguiente commit abrimos modal + detalle API
+    console.log("Abrir detalle:", showId);
+  }
 
   return (
     <main className="min-h-screen p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold">TVMaze Explorer</h1>
-          <p className="opacity-80">Busca series y guarda favoritos.</p>
+          <p className="opacity-80">
+            Pulsa “Buscar” para cargar el listado, filtra por nombre y abre el detalle.
+          </p>
         </header>
 
         <SearchBar query={query} onQueryChange={setQuery} onSearch={handleSearch} />
@@ -52,10 +63,9 @@ export default function Home() {
 
         {loading ? <div className="text-sm opacity-80">Cargando…</div> : null}
 
+        {/* Enunciado: antes de buscar, no mostramos el listado */}
         {hasSearched && !loading && !error ? (
-          <div className="text-sm opacity-80">
-            Series cargadas: <span className="font-medium">{shows.length}</span>
-          </div>
+          <ShowGrid shows={filteredShows} onOpenDetails={openDetails} />
         ) : null}
       </div>
     </main>
