@@ -145,7 +145,7 @@ export default function Home() {
 
         {loading ? <div className="text-sm opacity-80">Cargando…</div> : null}
 
-        {hasSearched && !error ? (
+        {hasSearched && !error && !loading ? (
           <ShowGrid
             shows={filteredShows}
             favorites={favorites}

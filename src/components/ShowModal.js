@@ -1,10 +1,44 @@
-export default function ShowModal({ open, show, onClose, isFavorite, onToggleFavorite }) {
+import { useEffect } from "react";
+
+export default function ShowModal({
+  open,
+  show,
+  onClose,
+  isFavorite,
+  onToggleFavorite,
+}) {
+  useEffect(() => {
+    if (!open) return;
+
+    // Cerrar con ESC
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+
+    // Bloquear scroll del body
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
   if (!open || !show) return null;
 
   const img = show.image?.original || show.image?.medium;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+      onMouseDown={(e) => {
+        // click fuera (overlay)
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="w-full max-w-3xl rounded-2xl border border-black/10 bg-white p-4 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-xl font-semibold">{show.name}</h2>
@@ -51,6 +85,10 @@ export default function ShowModal({ open, show, onClose, isFavorite, onToggleFav
             >
               {isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
             </button>
+
+            <p className="text-xs opacity-60">
+              Tip: puedes cerrar con ESC o haciendo click fuera.
+            </p>
           </div>
         </div>
       </div>
